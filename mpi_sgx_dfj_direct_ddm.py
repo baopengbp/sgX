@@ -77,25 +77,38 @@ def loop(self):
     aosym = 's2ij'
 
     segsize = (naoaux+mpi.pool.size-1) // mpi.pool.size
-    global pauxz,paux
+    global paux
     aa = 0
     while naoaux-aa > segsize-1:
         aa = 0
         j = 0
         b1 = []
-        pauxz = []
         paux = []
         for i in range(auxmol.nbas+1):
             if ao_loc[mol.nbas+i]-nao-aa > segsize and j < mpi.pool.size-1:
                 paux.append(ao_loc[mol.nbas+i-1]-nao-aa)
                 aa = ao_loc[mol.nbas+i-1]-nao
-                pauxz.append(aa)
                 b1.append(i-1)
                 j += 1
         if naoaux-aa <= segsize:
             b1.append(auxmol.nbas)
-            paux.append(naoaux-aa)            
-            pauxz.append(ao_loc[-1])
+            paux.append(naoaux-aa)
+            # average the last two to two+losted
+            if len(b1) != mpi.pool.size: 
+                nb1 = len(b1)
+                nbl2 = b1[nb1-1] - b1[nb1-3]
+                vb0 = b1[nb1-3]
+                b1 = b1[:nb1-2]
+                paux = paux[:nb1-2]
+                segs = nbl2 // (mpi.pool.size - nb1 +2)
+                for i in range(mpi.pool.size - nb1 +1):
+                    vb1 = b1[nb1-3] + segs * (i+1)
+                    b1.append(vb1)
+                    paux.append(ao_loc[mol.nbas+vb1] - ao_loc[mol.nbas+vb0])
+                    vb0 = vb1
+                vb1 = b1[mpi.pool.size-2] + nbl2 - (mpi.pool.size - nb1 +1)*segs
+                b1.append(vb1)
+                paux.append(ao_loc[mol.nbas+vb1] - ao_loc[mol.nbas+b1[mpi.pool.size-2]])
         segsize += 1
     stop = b1[rank]    
     if rank ==0:
@@ -312,6 +325,18 @@ def get_jk(mol_or_mf, dm, hermi, dmcur, *args, **kwargs):
         else:
             wao_v = wao_vx
             coords = coordsx
+        # rescatter data
+        coords = mpi.gather(coords)
+        wao_v = mpi.gather(wao_v)
+        fg = mpi.gather(fg)
+        if rank == 0:
+            coords = numpy.array_split(coords, mpi.pool.size)
+            wao_v = numpy.array_split(wao_v, mpi.pool.size)
+            fg = numpy.array_split(fg, mpi.pool.size)
+        coords = mpi.scatter(coords)
+        wao_v = mpi.scatter(wao_v)
+        fg = mpi.scatter(fg)
+        
 # Kuv = Sum(Xug Avt Dkt Xkg)
         ngrids = coords.shape[0]
         blksize = min(ngrids, sblk)
