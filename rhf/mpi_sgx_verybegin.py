@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+# sgX
+# Author: Peng Bao <baopeng@iccas.ac.cn>
+
+'''
+very begin semi-grid Coulomb and eXchange without differencial density matrix
+To lower the scaling of coulomb and exchange matrix construction for large system, one 
+coordinate is analitical and the other is grid. The traditional two electron 
+integrals turn to analytical one electron integrals and numerical integration 
+based on grid.(see Friesner, R. A. Chem. Phys. Lett. 1985, 116, 39)
+
+'MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 mpirun -np 16 python test.py'
+In test.py, need:
+import mpi_sgx_verybegin as sgx
+mf = sgx.RHF(mol)
+'''
 
 import time
 import numpy
