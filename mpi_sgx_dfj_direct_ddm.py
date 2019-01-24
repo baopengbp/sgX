@@ -151,22 +151,13 @@ def get_gridss(mol,lvl):
     # threshold for Xg and Fg
     gthrd = 1e-10
     if rank == 0: print('threshold for grids screening', gthrd)
-    sngds = []
-    ss = 0
-    for i in range(ngrids0):
-        if numpy.amax(numpy.absolute(wao_v0[i,:])) < gthrd:  
-            sngds.append(i)              
-            ss += 1
+    fg0 = numpy.amax(numpy.absolute(wao_v0), axis=1)
+    sngds = numpy.argwhere(fg0 < gthrd)
     wao_vx = numpy.delete(wao_v0, sngds, 0)
     coordsx = numpy.delete(coords0, sngds, 0)
 #    print ("Took this long for Xg screening: ", time.time()-Ktime)
     ngridsx = coordsx.shape[0]
     return wao_vx, ngridsx, coordsx, gthrd
-
-def batch_nuc(mol, grid_coords, out=None):
-    fakemol = gto.fakemol_for_charges(grid_coords)
-    j3c = df.incore.aux_e2(mol, fakemol, intor='int3c2e', aosym='s1', out=out)
-    return j3c
 
 '''
 # need modify bcast_tagged_array(arr) in mpi4pyscf/tools/mpi.py for very big array to:
@@ -312,13 +303,9 @@ def get_jk(mol_or_mf, dm, hermi, dmcur, *args, **kwargs):
     for k in range(nset):
 # screening from Fg
         fg = numpy.dot(wao_vx, dms[k])
-        sngds = []
-        ss = 0
-        for i in range(ngridsx):
-            if numpy.amax(numpy.absolute(fg[i,:])) < gthrd:  
-                sngds.append(i)              
-                ss += 1
-        if ss < ngridsx: 
+        fg0 = numpy.amax(numpy.absolute(fg), axis=1)
+        sngds = numpy.argwhere(fg0 < gthrd)
+        if sngds.shape[0] < ngridsx: 
             wao_v = numpy.delete(wao_vx, sngds, 0)
             fg = numpy.delete(fg, sngds, 0)
             coords = numpy.delete(coordsx, sngds, 0)
@@ -341,7 +328,8 @@ def get_jk(mol_or_mf, dm, hermi, dmcur, *args, **kwargs):
         ngrids = coords.shape[0]
         blksize = min(ngrids, sblk)
         for i0, i1 in lib.prange(0, ngrids, blksize):
-            bn=batch_nuc(mol, coords[i0:i1])
+            fakemol = gto.fakemol_for_charges(coords[i0:i1])
+            bn = df.incore.aux_e2(mol, fakemol, intor='int3c2e', aosym='s1', out=None)
             gbn = bn.swapaxes(0,2)
             gv = lib.einsum('gvt,gt->gv', gbn, fg[i0:i1]) 
             vk[k] += lib.einsum('gu,gv->uv', wao_v[i0:i1], gv)
