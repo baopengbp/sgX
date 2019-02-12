@@ -1,7 +1,7 @@
        
        semi-grid eXchange (sgX)                             
 
-This is a cubic scaling	HF exchange code for large system using even small memory. 
+These are cubic and linear scaling HF exchange codes for large system using even small memory. 
 
 Requirements: PySCF
 
