@@ -12,7 +12,7 @@ based on grid.(see Friesner, R. A. Chem. Phys. Lett. 1985, 116, 39 and
 Neese et. al. Chem. Phys. 2009, 356, 98)
 
 Minimizing numerical errors using overlap fitting correction.(see 
-Lzsak, R. et. al. J. Chem. Phys. 2013, 139, 094111)
+Lzsak, R. et. al. J. Chem. Phys. 2011, 135, 144105)
 Grid screening for weighted AO value and DktXkg. 
 Two SCF steps: coarse grid then fine grid. There are 5 parameters can be changed:
 # threshold for Xg and Fg
