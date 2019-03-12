@@ -15,7 +15,7 @@ Select a batch of grids in an atom, then use the AO value to screen u and
 use u and overlap matrix to screen v.
 
 Minimizing numerical errors using overlap fitting correction.(see 
-Lzsak, R. et. al. J. Chem. Phys. 2013, 139, 094111)
+Lzsak, R. et. al. J. Chem. Phys. 2011, 135, 144105)
 Grid screening for weighted AO value and DktXkg. 
 Two SCF steps: coarse grid then fine grid. There are several parameters can be changed:
 # threshold for u and v
