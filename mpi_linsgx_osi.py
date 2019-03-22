@@ -20,6 +20,8 @@ Grid screening for weighted AO value and DktXkg.
 Two SCF steps: coarse grid then fine grid. There are several parameters can be changed:
 # threshold for u and v
 gthrdu = 1e-10
+gthrdvs = 1e-10
+gthrdvd = 1e-10
 # initial and final grids level
 grdlvl_i = 0
 grdlvl_f = 1
@@ -239,8 +241,10 @@ def get_jk(mol_or_mf, dm, hermi, dmcur, *args, **kwargs):
     sblk = 200
 # interspace betweeen v shell
     intsp = 1
-# threshold for u 
+# threshold for u and v
     gthrdu = 1e-10
+    gthrdvs = 1e-10
+    gthrdvd = 1e-10
 
     global cond, wao_vx, ngridsx, coordsx, gridatm
 
@@ -352,10 +356,14 @@ def get_jk(mol_or_mf, dm, hermi, dmcur, *args, **kwargs):
             # screening u by value of grids 
             umaxg = numpy.amax(numpy.absolute(wao_v[i0:i1]), axis=0)
             usi = numpy.argwhere(umaxg > gthrdu).reshape(-1)
-            # screening v by ovlp then triangle matrix bn
+            # screening v by dm and ovlp then triangle matrix bn
             uovl = ovlp[usi, :]
             vmaxu = numpy.amax(numpy.absolute(uovl), axis=0)
-            vsi = numpy.argwhere(vmaxu > gthrdu).reshape(-1) 
+            osi = numpy.argwhere(vmaxu > gthrdvs).reshape(-1) 
+            udms = dms[k][usi, :]            
+            dmaxg = numpy.amax(numpy.absolute(udms), axis=0)
+            dsi = numpy.argwhere(dmaxg > gthrdvd).reshape(-1) 
+            vsi = numpy.intersect1d(dsi, osi) 
             if len(vsi) != 0:
                 vsh = numpy.unique(rao_loc[vsi])          
                 #vshbeg = vsh[0]
