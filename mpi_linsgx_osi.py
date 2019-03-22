@@ -169,7 +169,7 @@ def get_gridss(mol,lvl, sblk):
         gridatm.append(aaa) 
 
     gridatm = numpy.intersect1d(crdnum, numpy.asarray(gridatm))        
-    gridatm -= numpy.asarray([crdnum[0]]*gridatm.shape[0])
+    gridatm -= numpy.asarray([crdnum[0]]*gridatm.shape[0], dtype=int)
     gridatm = numpy.unique(numpy.append(gridatm,[0,crdnum.shape[0]]))        
     hsblk = sblk // 2
     for ii in range(gridatm.shape[0]-1):
