@@ -124,7 +124,10 @@ def loop(self):
         start = 0
     else:
        start = b1[rank-1]
-
+    if start == stop: 
+        print('rank=',rank, '!!!!!- no shell in this rank, need less threads -!!!!!')
+        print('aux basis',paux)
+        print('aux shell',b1)
 ### use 1/10 of the block to adapt memory
     BLKSIZE = min(80, (stop-start)//10+1)  
     for p0, p1 in lib.prange(start,stop, BLKSIZE):
