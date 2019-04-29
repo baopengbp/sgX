@@ -200,6 +200,37 @@ def get_jk_favorj(sgx, dm, hermi=1, with_j=True, with_k=True, direct_scf_tol=1e-
         ao = mol.eval_gto('GTOval', coords)
         wao = ao * grids.weights[i0:i1,None]
 
+        fg = lib.einsum('gi,xij->xgj', wao, proj_dm)
+        mask = numpy.zeros(i1-i0, dtype=bool)
+        for i in range(nset):
+            gmaxfg = numpy.amax(numpy.absolute(fg[i]), axis=1)
+            gmaxwao_v = numpy.amax(numpy.absolute(ao), axis=1)
+            gmaxtt = gmaxfg * gmaxwao_v
+            mask |= numpy.any(gmaxtt>1e-7)
+            mask |= numpy.any(gmaxtt<-1e-7)
+        if not numpy.all(mask):
+            ao = ao[mask]
+            wao = wao[mask]
+            fg = fg[:,mask]
+            coords = coords[mask]
+
+        # screening u by value of grids 
+        umaxg = numpy.amax(numpy.absolute(wao), axis=0)
+        usi = numpy.argwhere(umaxg > 1e-7).reshape(-1)
+        if len(usi) != 0:
+            # screening v by ovlp 
+            uovl = ovlp[usi, :]
+            vmaxu = numpy.amax(numpy.absolute(uovl), axis=0)
+            osi = numpy.argwhere(vmaxu > 1e-4).reshape(-1) 
+            udms = proj_dm[0][usi, :]
+            # screening v by dm and ovlp then triangle matrix bn
+            dmaxg = numpy.amax(numpy.absolute(udms), axis=0)
+            dsi = numpy.argwhere(dmaxg > 1e-4).reshape(-1) 
+            vsi = numpy.intersect1d(dsi, osi)
+            if len(vsi) != 0:
+                vsh = numpy.unique(rao_loc[vsi])
+                mol._bvv = vsh     
+      
         # screening u by value of grids 
         umaxg = numpy.amax(numpy.absolute(wao), axis=0)
         usi = numpy.argwhere(umaxg > 1e-7).reshape(-1)
