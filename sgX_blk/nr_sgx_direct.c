@@ -276,8 +276,7 @@ void SGXsetnr_direct_scf_blk(CVHFOpt *opt, int (*intor)(), CINTOpt *cintopt,
         double *buf = cache + cache_size;
 
         // 
-        int sind = -1;
-        int sjnd = -1;
+        int sind， sjnd;
 
 #pragma omp for schedule(dynamic, 4)
         for (ij = 0; ij < nbas*(nbas+1)/2; ij++) {
@@ -285,6 +284,8 @@ void SGXsetnr_direct_scf_blk(CVHFOpt *opt, int (*intor)(), CINTOpt *cintopt,
                 jsh = ij - ish*(ish+1)/2;
 
                 // set ish and jsh to 0 if not in bvv square
+                sind = -1;
+                sjnd = -1;          
                 for (i = 0; i < nbvv; i++) {
                         if (ish == bvv[i]) {
                                 sind = i;                                
