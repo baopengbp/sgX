@@ -1,0 +1,10 @@
+       
+Linear scaling semi-grid eXchange (LinsgX)                             
+
+This is a linear scaling semi-grid eXchange code for large system using even small memory. 
+
+Requirements: PySCF
+
+Replace /pyscf/lib/gto/fill_nr_3c.c  
+
+See the detailed introduction in every file
